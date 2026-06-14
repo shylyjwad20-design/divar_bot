@@ -5,7 +5,7 @@ import schedule
 import time
 import os
 
-BOT_TOKEN=8721044060:AAH5XALKBtG_0SBP2XDLY0Oee4Z0NGc2u7I
+BOT_TOKEN = "8721044060:AAH5XALKBtG_0SBP2XDLY0Oee4Z0NGc2u7I"
 CHANNEL_ID = "@aaasd62"
 
 bot = telebot.TeleBot(BOT_TOKEN)
