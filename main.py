@@ -19,61 +19,21 @@ def get_divar_ads():
         response = requests.get(url, headers=headers, timeout=10)
         data = response.json()
         
-        print("کلیدهای JSON:", list(data.keys()))
+        widget_list = data.get("widget_list", [])
         
-        ads = []
+        # چاپ کامل اولین آیتم برای دیدن ساختار
+        if widget_list:
+            print("ساختار آیتم اول:")
+            print(json.dumps(widget_list[0], ensure_ascii=False, indent=2))
         
-        # روش اول
-        post_list = data.get("web_widgets", {}).get("post_list", [])
-        
-        # روش دوم
-        if not post_list:
-            post_list = data.get("widget_list", [])
-        
-        print(f"تعداد آیتم‌ها: {len(post_list)}")
-        
-        for item in post_list:
-            try:
-                item_data = item.get("data", {})
-                title = item_data.get("title", "")
-                token = item_data.get("token", "")
-                
-                if not title or not token:
-                    continue
-                
-                top_desc = item_data.get("top_description_text", "")
-                mid_desc = item_data.get("middle_description_text", "")
-                price = top_desc or mid_desc or "قیمت توافقی"
-                
-                link = f"https://divar.ir/v/{token}"
-                
-                if token not in seen_tokens:
-                    seen_tokens.add(token)
-                    ads.append(f"🚗 {title}\n💰 {price}\n🔗 {link}")
-            except Exception as e:
-                print(f"خطا در پردازش آیتم: {e}")
-                continue
-        
-        return ads
+        return []
     except Exception as e:
-        print(f"خطا در دریافت داده: {e}")
+        print(f"خطا: {e}")
         return []
 
 def post_ads():
-    print("در حال بررسی آگهی‌های جدید...")
-    ads = get_divar_ads()
-    print(f"{len(ads)} آگهی پیدا شد")
-    
-    if not ads:
-        print("آگهی جدیدی پیدا نشد")
-        return
-    
-    for ad in ads:
-        try:
-            bot.send_message(CHANNEL_ID, ad)
-            time.sleep(2)
-        except Exception as e:
-            print(f"خطا در ارسال: {e}")
+    print("در حال بررسی...")
+    get_divar_ads()
 
 post_ads()
 
