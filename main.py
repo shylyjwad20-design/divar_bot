@@ -2,41 +2,53 @@ import requests
 import telebot
 import schedule
 import time
-import json
+from bs4 import BeautifulSoup
 
 BOT_TOKEN = "8721044060:AAH5XALKBtG_0SBP2XDLY0Oee4Z0NGc2u7I"
 CHANNEL_ID = "@aaasd62"
 
 bot = telebot.TeleBot(BOT_TOKEN)
-seen_tokens = set()
+seen_links = set()
 
-def get_divar_ads():
-    url = "https://api.divar.ir/v8/web-search/dezful/car"
+def get_ads():
+    url = "https://sheypoor.com/s/dezful/cars"
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Accept": "application/json",
-        "Referer": "https://divar.ir/s/dezful/car",
-        "Origin": "https://divar.ir",
-        "x-standard-divar-error": "true",
-        "x-divar-web-version": "2.394.2"
+        "User-Agent": "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36"
     }
-    
     try:
-        response = requests.get(url, headers=headers, timeout=15)
-        data = response.json()
-        items = data.get("widget_list", [])
+        r = requests.get(url, headers=headers, timeout=15)
+        soup = BeautifulSoup(r.text, "html.parser")
         
-        for item in items:
-            print(f"widget_type: {item.get('widget_type')}")
+        ads = []
+        items = soup.find_all("a", class_="listing-card")
         
-        return []
+        for item in items[:10]:
+            try:
+                title = item.find("h2").text.strip()
+                price = item.find("span", class_="price").text.strip()
+                link = "https://sheypoor.com" + item["href"]
+                
+                if link not in seen_links:
+                    seen_links.add(link)
+                    ads.append(f"🚗 {title}\n💰 {price}\n🔗 {link}")
+            except:
+                continue
+        
+        return ads
     except Exception as e:
         print(f"خطا: {e}")
         return []
 
 def post_ads():
     print("در حال بررسی...")
-    get_divar_ads()
+    ads = get_ads()
+    print(f"{len(ads)} آگهی پیدا شد")
+    for ad in ads:
+        try:
+            bot.send_message(CHANNEL_ID, ad)
+            time.sleep(2)
+        except Exception as e:
+            print(f"خطا: {e}")
 
 post_ads()
 schedule.every(1).hours.do(post_ads)
